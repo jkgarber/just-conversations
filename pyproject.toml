@@ -3,7 +3,7 @@ name = "incontext"
 version = "0.0.3"
 description = "incontext but it's just conversations."
 dependencies = [
-	"flask",
+	"flask"
 ]
 
 [build-system]
