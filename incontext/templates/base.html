@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>{% block title %}{% endblock %} - InContext</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> <!-- Flask automatically adds a static view that takes a path relative to the `incontext/static` directory and serves it. -->
+	</head>
+	<body>
+		<header>
+			<nav>
+				<span class="brand">InContext</span>
+				{% if g.user %}
+				<ul>
+					<li><span><a href="{{ url_for('conversations.index') }}">Conversations</a></li>
+				</ul>
+				{% endif %}
+				<ul>
+					{% if g.user %} <!-- g.user is being set by `load_logged_in_user`. -->
+						<li><span>{{ g.user['username'] }}</span></li>
+						<li><span><a href="{{ url_for('auth.logout') }}">Log Out</a></li> <!-- url_for is automatically available and is used to generate URLs to views instead of writing them out manually. -->
+					{% else %}
+						{% if request.path == url_for('auth.login') %}
+							<li><a href="{{ url_for('auth.register') }}">Register</a></li>
+						{% elif request.path == url_for('auth.register') %}
+							<li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+						{% else %}
+							<li><a href="{{ url_for('auth.register') }}">Register</a></li>
+							<li><a href="{{ url_for('auth.login') }}">Log In</a></li>
+						{% endif %}
+					{% endif %}
+				</ul>
+			</nav>
+		</header>
+		<main>
+			<header>
+				{% block header %}{% endblock %}
+			</header>
+			{% for message in get_flashed_messages() %} <!-- shows any error messages -->
+				<p class="flash">{{ message }}</p>
+			{% endfor %}
+			{% block main %}{% endblock %}
+		</main>
+	</body>
+</html>

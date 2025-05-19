@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Login{% endblock %}</h1> <!-- useful pattern: sets the title block and the page heading without writing it twice. -->
+{% endblock %}
+
+{% block main %}
+	<form method="post">
+		<label for="username">Username
+			<input id="username" name="username" required>
+		</label>
+		<label for="password">Password
+			<input id="password" name="password" type="password" required>
+		</label>
+		<input type="submit" value="Log In">
+	</form>
+{% endblock %}
