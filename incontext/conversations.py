@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 
 from incontext.auth import login_required
 from incontext.db import get_db
+from incontext.messages import get_messages, delete_messages
 
 bp = Blueprint('conversations', __name__, url_prefix='/conversations')
 
@@ -12,7 +13,7 @@ bp = Blueprint('conversations', __name__, url_prefix='/conversations')
 @login_required
 def index():
     db = get_db()
-    agents = db.execute(
+    conversations = db.execute(
         'SELECT c.id, name, created, creator_id, username'
         ' FROM conversations c JOIN users u ON c.creator_id = u.id'
         ' ORDER BY created DESC'
@@ -92,4 +93,14 @@ def delete(id):
     db = get_db()
     db.execute('DELETE FROM conversations WHERE id = ?', (id,))
     db.commit()
+    delete_messages(id)
     return redirect(url_for('conversations.index'))
+
+@bp.route('/<int:id>', methods=('GET',))
+@login_required
+def view(id):
+    conversation = get_conversation(id)
+    messages = get_messages(id)
+    forms = ['1']
+    return render_template('conversations/view.html', conversation=conversation, messages=messages, forms=forms)
+

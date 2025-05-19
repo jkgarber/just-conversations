@@ -8,7 +8,7 @@
 	<body>
 		<header>
 			<nav>
-				<span class="brand">InContext</span>
+				<span class="brand"><a href="{{ url_for('home.index') }}">InContext</a></span>
 				{% if g.user %}
 				<ul>
 					<li><span><a href="{{ url_for('conversations.index') }}">Conversations</a></li>

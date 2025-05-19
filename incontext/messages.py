@@ -14,24 +14,28 @@ bp = Blueprint('messages', __name__, url_prefix='/messages')
 def get_messages(conversation_id, check_creator=True):
     messages = get_db().execute(
         'SELECT m.id, m.content, m.human, m.created, c.creator_id'
-        'FROM messages m'
-        'JOIN conversations c'
-        'ON m.conversation_id = c.id'
-        'WHERE c.id = ?',
+        ' FROM messages m'
+        ' JOIN conversations c'
+        ' ON m.conversation_id = c.id'
+        ' WHERE c.id = ?',
         (conversation_id,)
     ).fetchall()
-
-    if messages is None:
-        abort(404, f"Messages for conversation with id {id} don't exist.")
-
-    if check_creator and messages[0]['creator_id'] != g.user['id']:
+    
+    if len(messages) > 0 and check_creator and messages[0]['creator_id'] != g.user['id']:
         abort(403) # 403 means Forbidden. 401 means "Unauthorized" but you redirect to the login page instead of returning that status.
 
     return messages
 
+
+def delete_messages(conversation_id, check_creator=True):
+    db = get_db()
+    db.execute('DELETE FROM messages WHERE conversation_id = ?', (conversation_id,))
+    db.commit()
+
+
 @bp.route('/<int:conversation_id>', methods=('GET',))
 @login_required
-def conversation_messages(id):
+def conversation_messages(conversation_id):
     messages = get_messages(conversation_id)
     return messages
 
@@ -61,11 +65,11 @@ def conversation_messages(id):
 
 @bp.route('/<int:conversation_id>/add', methods=('POST',))
 @login_required
-def add_message():
-    message_content = request.form['content']
+def add_message(conversation_id):
+    message_content = request.json['content']
     error = None
 
-    if not content:
+    if not message_content:
         error = 'Message can\'t be empty.'
 
     if error is not None:
@@ -74,7 +78,7 @@ def add_message():
         db = get_db()
         db.execute(
             'INSERT INTO messages (conversation_id, content, human)'
-            'VALUES (?, ?, ?)',
+            ' VALUES (?, ?, ?)',
             (conversation_id, message_content, 1,)
         )
         db.commit()

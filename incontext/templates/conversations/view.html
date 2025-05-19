@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block header %}
+	<h1>{% block title %}Conversation "{{ conversation['name'] }}"{% endblock %}</h1>
+{% endblock %}
+	
+{% block main %}
+<section id="messages">
+	<h2>Messages</h2>
+	
+	{% if messages|length == 0 %}
+	    <p>No messages</p>
+	{% else %}
+		{% for message in messages %}
+			<p>{{ message['content'] }}</p>
+		{% endfor %}
+	{% endif %}
+</section>
+
+
+<form>
+	<textarea name="content" required autofocus></textarea>
+	<input type="submit" value="Add">
+</form>
+
+<script>
+	const form = document.querySelector("form");
+	form.addEventListener("submit", (event) => {
+		event.preventDefault();
+		new FormData(form);
+	});
+
+	form.addEventListener("formdata", (event) => {
+		const payload = new Object();
+		for (const entry of event.formData.entries()) {
+			payload[entry[0]] = entry[1];
+			sendRequest(payload);
+		}
+	});
+
+	async function sendRequest(payload) {
+		const resource = "{{ url_for('messages.add_message', conversation_id=conversation['id']) }}";
+		const options = {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(payload)
+		}
+		try {
+			const response = await fetch(resource, options);
+			if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+			updateDisplay(payload);
+		}
+		catch (error) {
+			console.error(`Fetch problem: ${error.message}`);
+		}
+	}
+
+	function updateDisplay(payload) {
+		const messagesSection = document.querySelector("section#messages");
+		const m = document.createElement("p");
+		m.textContent = payload['content'];
+		messagesSection.appendChild(m);
+		field = document.querySelector("textarea");
+		field.value = '';
+		field.focus();
+	}
+</script>
+
+{% endblock %}
+

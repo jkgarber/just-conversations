@@ -13,7 +13,7 @@
 		<header>
 			<h2>{{ conversation['name'] }}</h2>
 		</header>
-		<a href="{{ url_for('conversation.view', id=conversation['id']) }}">Open</a>
+		<a href="{{ url_for('conversations.view', id=conversation['id']) }}">Open</a>
 		<footer>
 			<p>Created: {{ conversation['created'].strftime('%d.%m.%Y') }} | Creator: {{ conversation['username'] }}{% if g.user['id'] == conversation['creator_id'] %} | <a href="{{ url_for('conversations.update', id=conversation['id']) }}">Edit</a>{% endif %}</p>
 		</footer>
