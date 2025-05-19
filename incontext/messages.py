@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from incontext.auth import login_required
 from incontext.db import get_db
 
-from openai import OpenAI
+# from openai import OpenAI
 
 bp = Blueprint('messages', __name__, url_prefix='/messages')
 
