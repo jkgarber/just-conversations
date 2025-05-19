@@ -29,7 +29,7 @@ def get_messages(conversation_id, check_creator=True):
 
     return messages
 
-@bp.route('/<int:conversation_id>', methods=('GET'))
+@bp.route('/<int:conversation_id>', methods=('GET',))
 @login_required
 def conversation_messages(id):
     messages = get_messages(conversation_id)
@@ -59,7 +59,7 @@ def conversation_messages(id):
 #         return dict(success=False, content=f'Error: {str(e)}')
     
 
-@bp.route('/<int:conversation_id>/add', methods=('POST'))
+@bp.route('/<int:conversation_id>/add', methods=('POST',))
 @login_required
 def add_message():
     message_content = request.form['content']
