@@ -6,7 +6,7 @@ from werkzeug.exceptions import abort
 from incontext.auth import login_required
 from incontext.db import get_db
 
-# from openai import OpenAI
+from openai import OpenAI
 
 bp = Blueprint('messages', __name__, url_prefix='/messages')
 
@@ -40,27 +40,27 @@ def conversation_messages(conversation_id):
     return messages
 
 
-# def get_agent_response(cid):
-#     messages = get_messages(conversation_id)
-#     conversation_history = []
-#     for message in messages:
-#         human = message['human']
-#         if human == 1:
-#             role = 'user'
-#         elif human == 0:
-#             role = 'assistant'
-#         content = message['content']
-#         conversation_history.append(dict(role=role, content=content))
-# 
-#     client = OpenAI()
-#     try:
-#         response = client.responses.create(
-#             model='gpt-4.1-mini',
-#             input=conversation_history
-#         )
-#         return dict(success=True, content=response.output_text)
-#     except Exception as e:
-#         return dict(success=False, content=f'Error: {str(e)}')
+def get_agent_response(cid):
+    messages = get_messages(cid)
+    conversation_history = [dict(role='system', content='You are a helpful assistant.')]
+    for message in messages:
+        human = message['human']
+        if human == 1:
+            role = 'user'
+        elif human == 0:
+            role = 'assistant'
+        content = message['content']
+        conversation_history.append(dict(role=role, content=content))
+
+    client = OpenAI()
+    try:
+        response = client.responses.create(
+            model='gpt-4.1-mini',
+            input=conversation_history
+        )
+        return dict(success=True, content=response.output_text)
+    except Exception as e:
+        return dict(success=False, content=f'Error: {str(e)}')
     
 
 @bp.route('/<int:conversation_id>/add', methods=('POST',))
@@ -82,16 +82,16 @@ def add_message(conversation_id):
             (conversation_id, message_content, 1,)
         )
         db.commit()
-        return '', 200        
-        # agent_response = get_agent_response(conversation_id)
-        # if agent_response['success']:
-        #     db = get_db()
-        #     db.execute(
-        #         'INSERT INTO messages (conversation_id, content, human)'
-        #         'VALUES (?, ?, ?)',
-        #         (conversation_id, agent_response['content'], 0,)
-        #     )
-        #     db.commit()
-        #     return agent_response['content']
-        # elif not agent_response['success']:
-        #     return 'The OpenAI API returned an error.'
+        
+        agent_response = get_agent_response(conversation_id)
+        if agent_response['success']:
+            db = get_db()
+            db.execute(
+                'INSERT INTO messages (conversation_id, content, human)'
+                'VALUES (?, ?, ?)',
+                (conversation_id, agent_response['content'], 0,)
+            )
+            db.commit()
+            return {'text': agent_response['content']}, 200
+        elif not agent_response['success']:
+            return 'The OpenAI API returned an error.', 200

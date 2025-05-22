@@ -12,7 +12,7 @@
 	    <p>No messages</p>
 	{% else %}
 		{% for message in messages %}
-			<p>{{ message['content'] }}</p>
+		<p class="human-{{ message['human'] }}">{{ message['content'] }}</p>
 		{% endfor %}
 	{% endif %}
 </section>
@@ -34,8 +34,9 @@
 		const payload = new Object();
 		for (const entry of event.formData.entries()) {
 			payload[entry[0]] = entry[1];
-			sendRequest(payload);
 		}
+		updateDisplay('human-1', payload['content']);
+		sendRequest(payload);
 	});
 
 	async function sendRequest(payload) {
@@ -48,17 +49,19 @@
 		try {
 			const response = await fetch(resource, options);
 			if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-			updateDisplay(payload);
+			const json = await response.json();
+			updateDisplay("human-0", json.text);
 		}
 		catch (error) {
 			console.error(`Fetch problem: ${error.message}`);
 		}
 	}
 
-	function updateDisplay(payload) {
+	function updateDisplay(role, content) {
 		const messagesSection = document.querySelector("section#messages");
 		const m = document.createElement("p");
-		m.textContent = payload['content'];
+		m.textContent = content;
+		m.classList.add(role);
 		messagesSection.appendChild(m);
 		field = document.querySelector("textarea");
 		field.value = '';
