@@ -57,7 +57,7 @@ def get_conversation(id, check_creator=True):
 
     if check_creator and conversation['creator_id'] != g.user['id']:
         abort(403) # 403 means Forbidden. 401 means "Unauthorized" but you redirect to the login page instead of returning that status.
-
+    
     return conversation
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
@@ -101,6 +101,5 @@ def delete(id):
 def view(id):
     conversation = get_conversation(id)
     messages = get_messages(id)
-    forms = ['1']
-    return render_template('conversations/view.html', conversation=conversation, messages=messages, forms=forms)
+    return render_template('conversations/view.html', conversation=conversation, messages=messages)
 

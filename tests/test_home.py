@@ -9,5 +9,4 @@ def test_index(client, auth):
 
     auth.login()
     response = client.get('/') # the index view should display.
-    print(f'Response status code: {response.status_code}')
     assert b'href="/conversations/"' in response.data

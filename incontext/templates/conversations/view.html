@@ -5,17 +5,18 @@
 {% endblock %}
 	
 {% block main %}
-<section id="messages">
-	<h2>Messages</h2>
-	
-	{% if messages|length == 0 %}
-	    <p>No messages</p>
-	{% else %}
-		{% for message in messages %}
-		<p class="human-{{ message['human'] }}">{{ message['content'] }}</p>
-		{% endfor %}
-	{% endif %}
-</section>
+<article class="conversation">
+	<section id="messages">
+		<h2>Messages</h2>
+		{% if messages|length == 0 %}
+			<p id="noMessages">No messages</p>
+		{% else %}
+			{% for message in messages %}
+			<p class="human-{{ message['human'] }}">{{ message['content'] }}</p>
+			{% endfor %}
+		{% endif %}
+	</section>
+</article>
 
 
 <form>
@@ -35,11 +36,10 @@
 		for (const entry of event.formData.entries()) {
 			payload[entry[0]] = entry[1];
 		}
-		updateDisplay('human-1', payload['content']);
-		sendRequest(payload);
+		addMessage(payload);
 	});
 
-	async function sendRequest(payload) {
+	async function addMessage(payload) {
 		const resource = "{{ url_for('messages.add_message', conversation_id=conversation['id']) }}";
 		const options = {
 			method: "POST",
@@ -49,23 +49,45 @@
 		try {
 			const response = await fetch(resource, options);
 			if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-			const json = await response.json();
-			updateDisplay("human-0", json.text);
+			checkAndRemoveNoMessagesTip();
+			updateDisplay('1', payload['content']);
+			agentResponse();
 		}
 		catch (error) {
 			console.error(`Fetch problem: ${error.message}`);
 		}
 	}
 
+	async function agentResponse() {
+		const resource = "{{ url_for('messages.agent_response', conversation_id=conversation['id']) }}";
+		const options = {
+			method: "POST",
+		}
+		try {
+			const response = await fetch(resource, options);
+			if (!response.ok) throw new Error(`HTTP error: ${respose.status}`);
+			const json = await response.json();
+			updateDisplay('0', json.content);
+		}
+		catch (error) {
+			console.error(`Fetch problem: ${error.message}`);
+		}
+	}				
+
 	function updateDisplay(role, content) {
 		const messagesSection = document.querySelector("section#messages");
 		const m = document.createElement("p");
 		m.textContent = content;
-		m.classList.add(role);
+		m.classList.add(`human-${role}`);
 		messagesSection.appendChild(m);
 		field = document.querySelector("textarea");
 		field.value = '';
 		field.focus();
+	}
+
+	function checkAndRemoveNoMessagesTip() {
+		const noMessagesTip = document.querySelector("#noMessages");
+		if (noMessagesTip) noMessagesTip.remove();
 	}
 </script>
 

@@ -27,7 +27,7 @@ def get_messages(conversation_id, check_creator=True):
     return messages
 
 
-def delete_messages(conversation_id, check_creator=True):
+def delete_messages(conversation_id):
     db = get_db()
     db.execute('DELETE FROM messages WHERE conversation_id = ?', (conversation_id,))
     db.commit()
@@ -82,16 +82,21 @@ def add_message(conversation_id):
             (conversation_id, message_content, 1,)
         )
         db.commit()
-        
-        agent_response = get_agent_response(conversation_id)
-        if agent_response['success']:
-            db = get_db()
-            db.execute(
-                'INSERT INTO messages (conversation_id, content, human)'
-                'VALUES (?, ?, ?)',
-                (conversation_id, agent_response['content'], 0,)
-            )
-            db.commit()
-            return {'text': agent_response['content']}, 200
-        elif not agent_response['success']:
-            return 'The OpenAI API returned an error.', 200
+        return '', 200
+
+
+@bp.route('/<int:conversation_id>/agent-response', methods=('POST',))
+@login_required
+def agent_response(conversation_id):
+    agent_response = get_agent_response(conversation_id)
+    if agent_response['success']:
+        db = get_db()
+        db.execute(
+            'INSERT INTO messages (conversation_id, content, human)'
+            'VALUES (?, ?, ?)',
+            (conversation_id, agent_response['content'], 0,)
+        )
+        db.commit()
+        return {'content': agent_response['content']}, 200
+    elif not agent_response['success']:
+        return 'The Agent\'s API returned an error.', 200
