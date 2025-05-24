@@ -40,7 +40,7 @@
 	});
 
 	async function addMessage(payload) {
-		const resource = "{{ url_for('messages.add_message', conversation_id=conversation['id']) }}";
+		const resource = "{{ url_for('conversations.add_message', conversation_id=conversation['id']) }}";
 		const options = {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -59,7 +59,7 @@
 	}
 
 	async function agentResponse() {
-		const resource = "{{ url_for('messages.agent_response', conversation_id=conversation['id']) }}";
+		const resource = "{{ url_for('conversations.agent_response', conversation_id=conversation['id']) }}";
 		const options = {
 			method: "POST",
 		}
