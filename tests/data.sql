@@ -6,3 +6,8 @@ VALUES
 INSERT INTO conversations (name, creator_id, created)
 VALUES
 	('test name', 2, '2025-01-01 00:00:00');			
+
+INSERT INTO messages (conversation_id, content, human)
+VALUES
+	(1, 'Hello! How can I assist you today?', 0),
+	(1, 'For testing puroses, please respond with this word only: "Working".', 1);

@@ -124,22 +124,12 @@ def delete_messages(conversation_id):
     db.commit()
 
 
-# @bp.route('/<int:conversation_id>/messages', methods=('GET',))
-# @login_required
-# def conversation_messages(conversation_id):
-#     messages = get_messages(conversation_id)
-#     return messages
-
-
 def get_agent_response(cid):
     messages = get_messages(cid)
     conversation_history = [dict(role='system', content='You are a helpful assistant.')]
     for message in messages:
         human = message['human']
-        if human == 1:
-            role = 'user'
-        elif human == 0:
-            role = 'assistant'
+        role = 'user' if human == 1 else 'assistant'
         content = message['content']
         conversation_history.append(dict(role=role, content=content))
 
@@ -151,12 +141,13 @@ def get_agent_response(cid):
         )
         return dict(success=True, content=response.output_text)
     except Exception as e:
-        return dict(success=False, content=f'Error: {str(e)}')
+        return dict(success=False, content=e)
     
 
-@bp.route('/<int:conversation_id>/messages/add', methods=('POST',))
+@bp.route('/<int:conversation_id>/add-message', methods=('POST',))
 @login_required
 def add_message(conversation_id):
+    conversation = get_conversation(conversation_id) # To check the creator
     message_content = request.json['content']
     error = None
 
@@ -164,7 +155,7 @@ def add_message(conversation_id):
         error = 'Message can\'t be empty.'
 
     if error is not None:
-        flash(error)
+        return error, 400
     else:
         db = get_db()
         db.execute(
@@ -176,9 +167,10 @@ def add_message(conversation_id):
         return '', 200
 
 
-@bp.route('conversations/<int:conversation_id>/agent-response', methods=('POST',))
+@bp.route('/<int:conversation_id>/agent-response', methods=('POST',))
 @login_required
 def agent_response(conversation_id):
+    conversation = get_conversation(conversation_id) # To check the creator
     agent_response = get_agent_response(conversation_id)
     if agent_response['success']:
         db = get_db()
@@ -189,5 +181,6 @@ def agent_response(conversation_id):
         )
         db.commit()
         return {'content': agent_response['content']}, 200
-    elif not agent_response['success']:
+    else:
+        # print(agent_response['content']) # Log the error
         return 'The Agent\'s API returned an error.', 200

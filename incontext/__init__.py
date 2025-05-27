@@ -40,8 +40,5 @@ def create_app(test_config=None):
 
     from . import conversations
     app.register_blueprint(conversations.bp)
-
-    from . import messages
-    app.register_blueprint(messages.bp)
     
     return app
