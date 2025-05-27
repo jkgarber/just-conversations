@@ -5,7 +5,7 @@ from werkzeug.exceptions import abort
 
 from incontext.auth import login_required
 from incontext.db import get_db
-# from incontext.messages import get_messages, delete_messages
+import os
 from openai import OpenAI
 
 bp = Blueprint('conversations', __name__, url_prefix='/conversations')
@@ -133,7 +133,7 @@ def get_agent_response(cid):
         content = message['content']
         conversation_history.append(dict(role=role, content=content))
 
-    client = OpenAI()
+    client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
     try:
         response = client.responses.create(
             model='gpt-4.1-mini',
