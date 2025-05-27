@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from incontext.auth import login_required
 from incontext.db import get_db
 from openai import OpenAI
+import os
 
 bp = Blueprint('conversations', __name__, url_prefix='/conversations')
 
@@ -123,6 +124,17 @@ def delete_messages(conversation_id):
     db.commit()
 
 
+def get_credential(name):
+    os_env_var = os.environ.get(name)
+    if os_env_var is not None:
+        return os_env_var
+    else:
+        credential_path = os.environ.get('CREDENTIALS_DIRECTORY')
+        with open(f'{credential_path}/{name}') as f:
+            credential = f.read().strip()
+            return credential
+
+
 def get_agent_response(cid):
     messages = get_messages(cid)
     conversation_history = [dict(role='system', content='You are a helpful assistant.')]
@@ -131,8 +143,9 @@ def get_agent_response(cid):
         role = 'user' if human == 1 else 'assistant'
         content = message['content']
         conversation_history.append(dict(role=role, content=content))
-
-    client = OpenAI()
+    
+    openai_api_key = get_credential('OPENAI_API_KEY')
+    client = OpenAI(api_key=openai_api_key)
     try:
         response = client.responses.create(
             model='gpt-4.1-mini',
